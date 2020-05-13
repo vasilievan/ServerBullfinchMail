@@ -8,7 +8,9 @@ import vasiliev.aleksey.bullfinchserver.general.Constants.MAIN_DIR
 import vasiliev.aleksey.bullfinchserver.general.Constants.SALT_SIZE
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.countHash
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.makeByteArray
+import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.makeKeyBytesFromJSONArray
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.todaysDate
+import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -76,6 +78,25 @@ class DataBase {
         val pathToLoginAndPassword = Paths.get("${MAIN_DIR}/$login/loginAndPassword.json")
         val contentOfFile = JSONObject(Files.readString(pathToLoginAndPassword, DEFAULT_CHARSET))
         return contentOfFile.getString("userName")
+    }
+
+    fun checkIfThereAreNewRequests(login: String): Long {
+        val pathToDirectory = Paths.get("${MAIN_DIR}/$login/new/friendRequests")
+        return Files.list(pathToDirectory).count()
+    }
+
+    fun listOfTriples(login: String): MutableList<Triple<String, String, ByteArray>> {
+        val dataList = mutableListOf<Triple<String, String, ByteArray>>()
+        val scheme = "${MAIN_DIR}/$login/new/friendRequests"
+        for (element in Files.list(Paths.get(scheme))) {
+            val jsonObject = JSONObject(Files.readString(Paths.get("$scheme/$element"), DEFAULT_CHARSET))
+            val from = jsonObject.getString("from")
+            val userName = jsonObject.getString("userName")
+            val publicKey = makeKeyBytesFromJSONArray(jsonObject.getJSONArray("publicKey"))
+            dataList.add(Triple(from, userName, publicKey))
+            Files.delete(Paths.get("$scheme/$element"))
+        }
+        return dataList
     }
 
     private fun generatePublicKeyJsonString(publicKeyForAFriend: ByteArray, login: String): String {

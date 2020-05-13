@@ -1,22 +1,27 @@
 package vasiliev.aleksey.bullfinchserver.general
 
+import org.json.JSONArray
 import vasiliev.aleksey.bullfinchserver.general.Constants.DEFAULT_CHARSET
 import vasiliev.aleksey.bullfinchserver.general.Constants.KEY_FACTORY_ALGORITM
-import vasiliev.aleksey.bullfinchserver.general.Constants.PING
+import vasiliev.aleksey.bullfinchserver.general.Constants.KEY_LENGTH
+import vasiliev.aleksey.bullfinchserver.general.Constants.MESSAGE_DIGEST_ALGORITM
 import java.io.IOException
 import java.io.OutputStream
+import java.net.ServerSocket
 import java.net.Socket
 import java.security.MessageDigest
 import java.security.PrivateKey
 import java.security.SecureRandom
 import java.util.*
+import java.util.logging.Logger
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
 object GlobalLogic {
+    val logger = Logger.getLogger(this.javaClass.name)
     val secureRandom = SecureRandom()
-    private val messageDigest = MessageDigest.getInstance("SHA-256")
+    private val messageDigest = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITM)
 
     fun String.makeByteArray(): ByteArray = this.toByteArray(DEFAULT_CHARSET)
 
@@ -24,14 +29,17 @@ object GlobalLogic {
 
     fun countHash(anything: ByteArray): ByteArray = messageDigest.digest(anything)
 
+    fun makeKeyBytesFromJSONArray(jsonArray: JSONArray): ByteArray {
+        val byteArray = ByteArray(KEY_LENGTH)
+        for ((counter, element) in jsonArray.withIndex()) {
+            byteArray[counter] = element.toString().toByte()
+        }
+        return byteArray
+    }
+
     fun readNext(data: ByteArray, clientSocket: Socket): ByteArray {
-        val beginningTime = Date().time
         while (true) {
             try {
-                if (Date().time - beginningTime > PING) {
-                    closeSocketAndStreams(clientSocket, clientSocket.getOutputStream())
-                    break
-                }
                 val count = clientSocket.getInputStream().read(data, 0, data.size)
                 if (count > 0) {
                     return data.copyOfRange(0, count)
@@ -40,6 +48,7 @@ object GlobalLogic {
                     break
                 }
             } catch (e: IOException) {
+                closeSocketAndStreams(clientSocket, clientSocket.getOutputStream())
             }
         }
         return ByteArray(0)
@@ -51,8 +60,7 @@ object GlobalLogic {
     }
 
     fun closeSocketAndStreams(clientSocket: Socket?, writer: OutputStream?) {
-        println("Client socket closed.")
-        clientSocket?.getInputStream()?.close()
+        logger.info("Client socket was closed.")
         writer?.close()
         clientSocket?.close()
     }
@@ -84,6 +92,7 @@ object GlobalLogic {
             sendSomethingToUser("Password is correct.".makeByteArray(), writer)
             return login
         }
+        closeSocketAndStreams(clientSocket, writer)
         return null
     }
 
