@@ -9,8 +9,6 @@ import vasiliev.aleksey.bullfinchserver.general.Constants.SALT_SIZE
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.countHash
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.makeByteArray
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.makeKeyBytesFromJSONArray
-import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.todaysDate
-import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 
@@ -89,12 +87,12 @@ class DataBase {
         val dataList = mutableListOf<Triple<String, String, ByteArray>>()
         val scheme = "${MAIN_DIR}/$login/new/friendRequests"
         for (element in Files.list(Paths.get(scheme))) {
-            val jsonObject = JSONObject(Files.readString(Paths.get("$scheme/$element"), DEFAULT_CHARSET))
+            val jsonObject = JSONObject(Files.readString(element, DEFAULT_CHARSET))
             val from = jsonObject.getString("from")
             val userName = jsonObject.getString("userName")
             val publicKey = makeKeyBytesFromJSONArray(jsonObject.getJSONArray("publicKey"))
             dataList.add(Triple(from, userName, publicKey))
-            Files.delete(Paths.get("$scheme/$element"))
+            Files.delete(element)
         }
         return dataList
     }
@@ -105,8 +103,26 @@ class DataBase {
         publicKeyForAFriend.forEach { jsonArray.put(it) }
         jsonObject.put("from", login)
         jsonObject.put("userName", getUserNameFromDB(login))
-        jsonObject.put("date", todaysDate())
         jsonObject.put("publicKey", jsonArray)
+        return jsonObject.toString()
+    }
+
+    fun saveMessageFromUser(from: String, toWhom: String, date: ByteArray, content: ByteArray) {
+        val toWrite = createJSONMessage(from, date, content)
+        val pathToMessage = Paths.get("${MAIN_DIR}/$toWhom/new/messages/${countHexForRequest(date)}.json")
+        Files.createFile(pathToMessage)
+        Files.writeString(pathToMessage, toWrite)
+    }
+
+    private fun createJSONMessage(from: String, date: ByteArray, content: ByteArray): String {
+        val jsonObject = JSONObject()
+        jsonObject.put("from", from)
+        val jsonArrayDate = JSONArray()
+        date.forEach { jsonArrayDate.put(it) }
+        jsonObject.put("date", jsonArrayDate)
+        val jsonArrayContent = JSONArray()
+        content.forEach { jsonArrayContent.put(it) }
+        jsonObject.put("message", jsonArrayContent)
         return jsonObject.toString()
     }
 }

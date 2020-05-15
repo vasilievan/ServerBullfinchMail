@@ -19,7 +19,7 @@ import javax.crypto.Cipher
 object RegistrationLogic {
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
 
-    fun signUserUp(data: ByteArray, clientSocket: Socket, decipher: Cipher?, writer: OutputStream, privateKey: PrivateKey?) {
+    fun signUserUp(data: ByteArray, clientSocket: Socket, decipher: Cipher?, writer: OutputStream, privateKey: PrivateKey) {
         logger.info("Someone wants to sign up.")
         val loginBytes = readNext(data, clientSocket)
         decipher!!.init(Cipher.DECRYPT_MODE, privateKey)

@@ -9,6 +9,7 @@ import vasiliev.aleksey.bullfinchserver.specific.RegistrationLogic.signUserUp
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.sendSomethingToUser
 import vasiliev.aleksey.bullfinchserver.specific.ChangingLogic.changeUserName
 import vasiliev.aleksey.bullfinchserver.specific.FriendsFindingLogic.makeFriend
+import vasiliev.aleksey.bullfinchserver.specific.MessagingLogic.sendMessageToSomeone
 import vasiliev.aleksey.bullfinchserver.specific.RequestLogic.checkForFriendsRequest
 import java.io.IOException
 import java.io.OutputStream
@@ -51,10 +52,11 @@ class PortListener(portNumber: Int, private val keyGen: KeyPairGenerator) {
     private fun understandWhatTheyWantFromYou() {
         when (readNext(data, clientSocket!!).makeString()) {
             "I want to exchange keys." -> sendKeyToUser()
-            "I want to sign up." -> signUserUp(data, clientSocket!!, decipher, writer!!, privateKey)
+            "I want to sign up." -> signUserUp(data, clientSocket!!, decipher, writer!!, privateKey!!)
             "I want to change a username." -> changeUserName(data, clientSocket!!, decipher, writer!!, privateKey!!)
             "I want to make friends." -> makeFriend(data, clientSocket!!, decipher, writer!!, privateKey!!)
             "I want to check for friends requests." -> checkForFriendsRequest(data, clientSocket!!, decipher, writer!!, privateKey!!)
+            "I want to send a message." -> sendMessageToSomeone(data, clientSocket!!, decipher, writer!!, privateKey!!)
             else -> closeSocketAndStreams(clientSocket, writer)
         }
     }

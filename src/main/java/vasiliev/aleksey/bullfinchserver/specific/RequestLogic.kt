@@ -1,6 +1,7 @@
 package vasiliev.aleksey.bullfinchserver.specific
 
 import vasiliev.aleksey.bullfinchserver.general.Constants.CIPHER_ALGORITM
+import vasiliev.aleksey.bullfinchserver.general.Constants.KEY_FACTORY_ALGORITM
 import vasiliev.aleksey.bullfinchserver.general.DataBase
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.authoriseUser
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.closeSocketAndStreams
@@ -27,12 +28,20 @@ object RequestLogic {
             closeSocketAndStreams(clientSocket, writer)
             return
         }
-        val myPublicKey = readNext(data, clientSocket)
-        val cipherHelper = Cipher.getInstance(CIPHER_ALGORITM)
-        cipherHelper.init(Cipher.ENCRYPT_MODE, KeyFactory.getInstance(CIPHER_ALGORITM).generatePublic(X509EncodedKeySpec(myPublicKey)))
         val db = DataBase()
         val amountOfNewRequests = db.checkIfThereAreNewRequests(login)
-        sendSomethingToUser(cipherHelper.doFinal(amountOfNewRequests.toString().makeByteArray()), writer)
+
+        val reverseKey = readNext(data, clientSocket)
+        val cipher = Cipher.getInstance(CIPHER_ALGORITM)
+        cipher.init(Cipher.ENCRYPT_MODE, KeyFactory.getInstance(KEY_FACTORY_ALGORITM).generatePublic(X509EncodedKeySpec(reverseKey)))
+        val cipheredAmount = cipher.doFinal(amountOfNewRequests.toString().makeByteArray())
+        sendSomethingToUser(cipheredAmount, writer)
+
+        val accepted = readNext(data, clientSocket).makeString()
+        if (accepted != "Amount received.") {
+            closeSocketAndStreams(clientSocket, writer)
+            return
+        }
         if (amountOfNewRequests == 0L) {
             logger.info("No requests yet.")
             closeSocketAndStreams(clientSocket, writer)
@@ -40,12 +49,13 @@ object RequestLogic {
         }
         val dataList = db.listOfTriples(login)
         for (element in dataList) {
-            sendSomethingToUser(cipherHelper.doFinal(element.first.makeByteArray()), writer)
-            sendSomethingToUser(cipherHelper.doFinal(element.second.makeByteArray()), writer)
+            sendSomethingToUser(cipher.doFinal(element.first.makeByteArray()), writer)
+            readNext(data, clientSocket).makeString()
+            sendSomethingToUser(cipher.doFinal(element.second.makeByteArray()), writer)
+            readNext(data, clientSocket).makeString()
             sendSomethingToUser(element.third, writer)
-            val hisPublicKeyCiphered = readNext(data, clientSocket)
-            val hisPublicKey = decipher.doFinal(hisPublicKeyCiphered)
-            db.transferPublicKeyToFriend(hisPublicKey, login, element.first)
+            val hisPublicKey = readNext(data, clientSocket)
+            if (hisPublicKey.makeString() != "Stop it.") db.transferPublicKeyToFriend(hisPublicKey, login, element.first)
         }
         logger.info("Served successfully.")
         closeSocketAndStreams(clientSocket, writer)

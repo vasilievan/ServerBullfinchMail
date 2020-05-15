@@ -2,17 +2,15 @@ package vasiliev.aleksey.bullfinchserver.general
 
 import org.json.JSONArray
 import vasiliev.aleksey.bullfinchserver.general.Constants.DEFAULT_CHARSET
-import vasiliev.aleksey.bullfinchserver.general.Constants.KEY_FACTORY_ALGORITM
-import vasiliev.aleksey.bullfinchserver.general.Constants.KEY_LENGTH
+import vasiliev.aleksey.bullfinchserver.general.Constants.EXTENDED_KEY_LENGTH
 import vasiliev.aleksey.bullfinchserver.general.Constants.MESSAGE_DIGEST_ALGORITM
+import vasiliev.aleksey.bullfinchserver.general.Constants.SECRET_KEY_FACTORY_ALGORITM
 import java.io.IOException
 import java.io.OutputStream
-import java.net.ServerSocket
 import java.net.Socket
 import java.security.MessageDigest
 import java.security.PrivateKey
 import java.security.SecureRandom
-import java.util.*
 import java.util.logging.Logger
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
@@ -30,7 +28,7 @@ object GlobalLogic {
     fun countHash(anything: ByteArray): ByteArray = messageDigest.digest(anything)
 
     fun makeKeyBytesFromJSONArray(jsonArray: JSONArray): ByteArray {
-        val byteArray = ByteArray(KEY_LENGTH)
+        val byteArray = ByteArray(EXTENDED_KEY_LENGTH)
         for ((counter, element) in jsonArray.withIndex()) {
             byteArray[counter] = element.toString().toByte()
         }
@@ -66,7 +64,7 @@ object GlobalLogic {
     }
 
     fun generateHashedPassword(password: String, secretSalt: ByteArray): Pair<String, ByteArray> {
-        val secretKeyFactory: SecretKeyFactory = SecretKeyFactory.getInstance(KEY_FACTORY_ALGORITM)
+        val secretKeyFactory: SecretKeyFactory = SecretKeyFactory.getInstance(SECRET_KEY_FACTORY_ALGORITM)
         val keySpec = PBEKeySpec(password.toCharArray(), secretSalt, 65536, 256)
         val hashedPassword = secretKeyFactory.generateSecret(keySpec).encoded
         return Pair(hashedPassword.makeString(), secretSalt)
@@ -94,13 +92,5 @@ object GlobalLogic {
         }
         closeSocketAndStreams(clientSocket, writer)
         return null
-    }
-
-    fun todaysDate(): String {
-        val calendar = Calendar.getInstance()
-        val year = calendar.get(Calendar.YEAR)
-        val month = calendar.get(Calendar.MONTH)
-        val day = calendar.get(Calendar.DAY_OF_MONTH)
-        return "$year.$month.$day"
     }
 }

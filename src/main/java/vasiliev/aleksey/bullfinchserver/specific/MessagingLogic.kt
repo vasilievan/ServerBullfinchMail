@@ -13,30 +13,25 @@ import java.security.PrivateKey
 import java.util.logging.Logger
 import javax.crypto.Cipher
 
-object FriendsFindingLogic {
-    val logger = Logger.getLogger(this.javaClass.name)
+object MessagingLogic {
+    val logger: Logger = Logger.getLogger(this.javaClass.name)
 
-    fun makeFriend(data:ByteArray, clientSocket: Socket, decipher: Cipher, writer: OutputStream, privateKey: PrivateKey) {
-        logger.info("Someone wants to make friends.")
+    fun sendMessageToSomeone(data: ByteArray, clientSocket: Socket, decipher: Cipher, writer: OutputStream, privateKey: PrivateKey) {
+        logger.info("Someone wants to send a message.")
         val login = authoriseUser(data, clientSocket, decipher, privateKey, writer)
         if (login == null) {
             logger.info("Oops. Incorret login.")
             closeSocketAndStreams(clientSocket, writer)
             return
         }
-        val friendUserNameBytes = readNext(data, clientSocket)
-        val friendUserName = decipher.doFinal(friendUserNameBytes).makeString()
         val db = DataBase()
-        if(!db.ifLoginIsAlreadyInDb(friendUserName)) {
-            logger.info("Oops. Unknown user.")
-            sendSomethingToUser("Oops. Unknown user.".makeByteArray(), writer)
-            closeSocketAndStreams(clientSocket, writer)
-            return
-        }
-        sendSomethingToUser("I know this user.".makeByteArray(), writer)
-        val publicKeyForAFriend = readNext(data, clientSocket)
-        db.transferPublicKeyToFriend(publicKeyForAFriend, login, friendUserName)
-        logger.info("I sent friend request.")
+        val toWhom = decipher.doFinal(readNext(data, clientSocket)).makeString()
+        sendSomethingToUser("Accepted.".makeByteArray(), writer)
+        val date = readNext(data, clientSocket)
+        sendSomethingToUser("Accepted.".makeByteArray(), writer)
+        val content = readNext(data, clientSocket)
+        db.saveMessageFromUser(login, toWhom, date, content)
+        sendSomethingToUser("Accepted.".makeByteArray(), writer)
         closeSocketAndStreams(clientSocket, writer)
     }
 }
