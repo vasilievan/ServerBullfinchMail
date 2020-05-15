@@ -97,6 +97,28 @@ class DataBase {
         return dataList
     }
 
+    fun listOfMessagesTriples(login: String): MutableList<Triple<String, ByteArray, ByteArray>> {
+        val dataList = mutableListOf<Triple<String, ByteArray, ByteArray>>()
+        val scheme = "${MAIN_DIR}/$login/new/messages"
+        for (element in Files.list(Paths.get(scheme))) {
+            val jsonObject = JSONObject(Files.readString(element, DEFAULT_CHARSET))
+            val from = jsonObject.getString("from")
+            val dateArray = jsonObject.getJSONArray("date")
+            val dateByteArray = ByteArray(256)
+            for (byte in 0 until dateArray.length()) {
+                dateByteArray[byte] = dateArray[byte].toString().toByte()
+            }
+            val messageArray = jsonObject.getJSONArray("message")
+            val messageByteArray = ByteArray(16384)
+            for (byte in 0 until messageArray.length()) {
+                messageByteArray[byte] = messageArray[byte].toString().toByte()
+            }
+            dataList.add(Triple(from, dateByteArray, messageByteArray))
+            Files.delete(element)
+        }
+        return dataList
+    }
+
     private fun generatePublicKeyJsonString(publicKeyForAFriend: ByteArray, login: String): String {
         val jsonObject = JSONObject()
         val jsonArray = JSONArray()
@@ -109,9 +131,14 @@ class DataBase {
 
     fun saveMessageFromUser(from: String, toWhom: String, date: ByteArray, content: ByteArray) {
         val toWrite = createJSONMessage(from, date, content)
-        val pathToMessage = Paths.get("${MAIN_DIR}/$toWhom/new/messages/${countHexForRequest(date)}.json")
+        val pathToMessage = Paths.get("${MAIN_DIR}/$toWhom/new/messages/${System.currentTimeMillis()}.json")
         Files.createFile(pathToMessage)
         Files.writeString(pathToMessage, toWrite)
+    }
+
+    fun checkIfThereAreNewMessages(login: String): Long {
+        val pathToDirectory = Paths.get("${MAIN_DIR}/$login/new/messages")
+        return Files.list(pathToDirectory).count()
     }
 
     private fun createJSONMessage(from: String, date: ByteArray, content: ByteArray): String {
