@@ -3,12 +3,9 @@ package vasiliev.aleksey.bullfinchserver.specific
 import vasiliev.aleksey.bullfinchserver.general.DataBase
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.authoriseUser
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.closeSocketAndStreams
-import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.makeByteArray
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.makeString
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.readNext
-import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.sendSomethingToUser
 import java.io.OutputStream
-import java.net.ServerSocket
 import java.net.Socket
 import java.security.PrivateKey
 import java.util.logging.Logger
