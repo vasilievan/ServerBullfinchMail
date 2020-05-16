@@ -78,11 +78,6 @@ class DataBase {
         return contentOfFile.getString("userName")
     }
 
-    fun checkIfThereAreNewRequests(login: String): Long {
-        val pathToDirectory = Paths.get("${MAIN_DIR}/$login/new/friendRequests")
-        return Files.list(pathToDirectory).count()
-    }
-
     fun listOfTriples(login: String): MutableList<Triple<String, String, ByteArray>> {
         val dataList = mutableListOf<Triple<String, String, ByteArray>>()
         val scheme = "${MAIN_DIR}/$login/new/friendRequests"
@@ -104,12 +99,12 @@ class DataBase {
             val jsonObject = JSONObject(Files.readString(element, DEFAULT_CHARSET))
             val from = jsonObject.getString("from")
             val dateArray = jsonObject.getJSONArray("date")
-            val dateByteArray = ByteArray(256)
+            val dateByteArray = ByteArray(dateArray.length())
             for (byte in 0 until dateArray.length()) {
                 dateByteArray[byte] = dateArray[byte].toString().toByte()
             }
             val messageArray = jsonObject.getJSONArray("message")
-            val messageByteArray = ByteArray(16384)
+            val messageByteArray = ByteArray(messageArray.length())
             for (byte in 0 until messageArray.length()) {
                 messageByteArray[byte] = messageArray[byte].toString().toByte()
             }
@@ -138,6 +133,11 @@ class DataBase {
 
     fun checkIfThereAreNewMessages(login: String): Long {
         val pathToDirectory = Paths.get("${MAIN_DIR}/$login/new/messages")
+        return Files.list(pathToDirectory).count()
+    }
+
+    fun checkIfThereAreNewRequests(login: String): Long {
+        val pathToDirectory = Paths.get("${MAIN_DIR}/$login/new/friendRequests")
         return Files.list(pathToDirectory).count()
     }
 

@@ -42,7 +42,6 @@ object RequestLogic {
         }
         if (amountOfNewRequests == 0L) {
             logger.info("No requests yet.")
-            return
         }
         val dataList = db.listOfTriples(login)
         for (element in dataList) {
