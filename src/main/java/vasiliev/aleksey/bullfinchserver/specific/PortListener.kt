@@ -32,7 +32,6 @@ class PortListener(portNumber: Int, private val keyGen: KeyPairGenerator) {
         val logger: Logger = Logger.getLogger(PortListener::class.java.name)
     }
 
-    // ok
     init {
         thread {
             try {

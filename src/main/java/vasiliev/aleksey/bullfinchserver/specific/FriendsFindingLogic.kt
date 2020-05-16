@@ -14,7 +14,7 @@ import java.util.logging.Logger
 import javax.crypto.Cipher
 
 object FriendsFindingLogic {
-    val logger = Logger.getLogger(this.javaClass.name)
+    private val logger = Logger.getLogger(this.javaClass.name)
 
     fun makeFriend(data:ByteArray, clientSocket: Socket, decipher: Cipher, writer: OutputStream, privateKey: PrivateKey) {
         logger.info("Someone wants to make friends.")

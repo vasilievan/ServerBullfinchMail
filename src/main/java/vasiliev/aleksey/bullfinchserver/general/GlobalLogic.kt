@@ -17,7 +17,7 @@ import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 
 object GlobalLogic {
-    val logger = Logger.getLogger(this.javaClass.name)
+    private val logger = Logger.getLogger(this.javaClass.name)
     val secureRandom = SecureRandom()
     private val messageDigest = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITM)
 
