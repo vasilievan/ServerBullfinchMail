@@ -3,14 +3,14 @@ package vasiliev.aleksey.bullfinchserver.general
 import org.apache.commons.codec.binary.Hex
 import org.json.JSONArray
 import org.json.JSONObject
-import vasiliev.aleksey.bullfinchserver.general.Constants.DEFAULT_CHARSET
-import vasiliev.aleksey.bullfinchserver.general.Constants.MAIN_DIR
-import vasiliev.aleksey.bullfinchserver.general.Constants.SALT_SIZE
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.countHash
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.makeByteArray
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.makeKeyBytesFromJSONArray
 import java.nio.file.Files
 import java.nio.file.Paths
+import vasiliev.aleksey.bullfinchserver.general.Constants.DEFAULT_CHARSET
+import vasiliev.aleksey.bullfinchserver.general.Constants.MAIN_DIR
+import vasiliev.aleksey.bullfinchserver.general.Constants.SALT_SIZE
 
 class DataBase {
     fun instance() {

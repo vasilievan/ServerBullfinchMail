@@ -10,22 +10,24 @@ import java.net.Socket
 import java.security.PrivateKey
 import java.util.logging.Logger
 import javax.crypto.Cipher
+import vasiliev.aleksey.bullfinchserver.general.ProtocolPhrases.USERNAME_CHANGED_SUCCESSFULLY_PHRASE
+import vasiliev.aleksey.bullfinchserver.general.ProtocolPhrases.USERNAME_CHANGING_PHRASE
 
 object ChangingLogic {
     private val logger: Logger = Logger.getLogger(this.javaClass.name)
 
-    fun changeUserName(data:ByteArray, clientSocket: Socket, decipher: Cipher, writer: OutputStream, privateKey: PrivateKey) {
-        logger.info("Someone wants to change a username.")
-        val login = authoriseUser(data, clientSocket, decipher, privateKey, writer)
+    fun changeUserName(clientSocket: Socket, decipher: Cipher, writer: OutputStream, privateKey: PrivateKey) {
+        logger.info(USERNAME_CHANGING_PHRASE)
+        val login = authoriseUser(clientSocket, decipher, privateKey, writer)
         if (login == null) {
             closeSocketAndStreams(clientSocket, writer)
             return
         }
-        val newUsernameBytes = readNext(data, clientSocket)
+        val newUsernameBytes = readNext(clientSocket)
         val userName = decipher.doFinal(newUsernameBytes).makeString()
         val db = DataBase()
         db.changeUserName(login, userName)
-        logger.info("Someone changed his username.")
+        logger.info(USERNAME_CHANGED_SUCCESSFULLY_PHRASE)
         closeSocketAndStreams(clientSocket, writer)
     }
 }

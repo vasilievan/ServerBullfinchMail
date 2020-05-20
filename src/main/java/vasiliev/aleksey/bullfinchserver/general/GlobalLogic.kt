@@ -1,10 +1,6 @@
 package vasiliev.aleksey.bullfinchserver.general
 
 import org.json.JSONArray
-import vasiliev.aleksey.bullfinchserver.general.Constants.DEFAULT_CHARSET
-import vasiliev.aleksey.bullfinchserver.general.Constants.EXTENDED_KEY_LENGTH
-import vasiliev.aleksey.bullfinchserver.general.Constants.MESSAGE_DIGEST_ALGORITM
-import vasiliev.aleksey.bullfinchserver.general.Constants.SECRET_KEY_FACTORY_ALGORITM
 import java.io.IOException
 import java.io.OutputStream
 import java.net.Socket
@@ -15,6 +11,13 @@ import java.util.logging.Logger
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
+import vasiliev.aleksey.bullfinchserver.general.Constants.DEFAULT_CHARSET
+import vasiliev.aleksey.bullfinchserver.general.Constants.EXTENDED_KEY_LENGTH
+import vasiliev.aleksey.bullfinchserver.general.Constants.MESSAGE_DIGEST_ALGORITM
+import vasiliev.aleksey.bullfinchserver.general.Constants.SECRET_KEY_FACTORY_ALGORITM
+import vasiliev.aleksey.bullfinchserver.general.ProtocolPhrases.CLOSE_CLIENT_SOCKET_PHRASE
+import vasiliev.aleksey.bullfinchserver.general.ProtocolPhrases.CORRECT_LOGIN_RESPONSE
+import vasiliev.aleksey.bullfinchserver.general.ProtocolPhrases.CORRECT_PASSWORD_RESPONSE
 
 object GlobalLogic {
     private val logger = Logger.getLogger(this.javaClass.name)
@@ -35,7 +38,8 @@ object GlobalLogic {
         return byteArray
     }
 
-    fun readNext(data: ByteArray, clientSocket: Socket): ByteArray {
+    fun readNext(clientSocket: Socket): ByteArray {
+        val data = ByteArray(8198)
         while (true) {
             try {
                 val count = clientSocket.getInputStream().read(data, 0, data.size)
@@ -58,7 +62,7 @@ object GlobalLogic {
     }
 
     fun closeSocketAndStreams(clientSocket: Socket?, writer: OutputStream?) {
-        logger.info("Client socket was closed.")
+        logger.info(CLOSE_CLIENT_SOCKET_PHRASE)
         writer?.close()
         clientSocket?.close()
     }
@@ -70,8 +74,8 @@ object GlobalLogic {
         return Pair(hashedPassword.makeString(), secretSalt)
     }
 
-    fun authoriseUser(data: ByteArray, clientSocket: Socket, decipher: Cipher?, privateKey: PrivateKey, writer: OutputStream): String? {
-        val loginBytesCiphered = readNext(data, clientSocket)
+    fun authoriseUser(clientSocket: Socket, decipher: Cipher?, privateKey: PrivateKey, writer: OutputStream): String? {
+        val loginBytesCiphered = readNext(clientSocket)
         decipher!!.init(Cipher.DECRYPT_MODE, privateKey)
         val login = decipher.doFinal(loginBytesCiphered).makeString()
         val db = DataBase()
@@ -80,14 +84,14 @@ object GlobalLogic {
             closeSocketAndStreams(clientSocket, writer)
             return null
         }
-        sendSomethingToUser("Login is correct.".makeByteArray(), writer)
+        sendSomethingToUser(CORRECT_LOGIN_RESPONSE, writer)
         val hashedPasswordAndSalt = db.getHashedUserPasswordAndSalt(login)
-        val passwordBytesCiphered = readNext(data, clientSocket)
+        val passwordBytesCiphered = readNext(clientSocket)
         val password = decipher.doFinal(passwordBytesCiphered).makeString()
         val salt = hashedPasswordAndSalt.second
         val newHashedPassword = generateHashedPassword(password, salt)
         if (newHashedPassword.first == hashedPasswordAndSalt.first) {
-            sendSomethingToUser("Password is correct.".makeByteArray(), writer)
+            sendSomethingToUser(CORRECT_PASSWORD_RESPONSE, writer)
             return login
         }
         closeSocketAndStreams(clientSocket, writer)
