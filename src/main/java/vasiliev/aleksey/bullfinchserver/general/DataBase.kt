@@ -13,9 +13,7 @@ import vasiliev.aleksey.bullfinchserver.general.Constants.MAIN_DIR
 import vasiliev.aleksey.bullfinchserver.general.Constants.SALT_SIZE
 
 class DataBase {
-    fun instance() {
-        Files.createDirectories(Paths.get(MAIN_DIR))
-    }
+    fun instance() = Files.createDirectories(Paths.get(MAIN_DIR))
 
     fun ifLoginIsAlreadyInDb(login: String): Boolean = Files.exists(Paths.get("${Paths.get(MAIN_DIR)}/$login"))
 
