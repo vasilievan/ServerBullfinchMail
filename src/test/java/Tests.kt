@@ -1,6 +1,9 @@
 import org.junit.jupiter.api.Test
 import org.json.JSONArray
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.assertFalse
 import vasiliev.aleksey.bullfinchserver.general.DataBase
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.countHash
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.generateHashedPassword
