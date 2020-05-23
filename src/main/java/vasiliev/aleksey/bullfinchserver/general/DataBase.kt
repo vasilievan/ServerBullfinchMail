@@ -3,7 +3,6 @@ package vasiliev.aleksey.bullfinchserver.general
 import org.apache.commons.codec.binary.Hex
 import org.json.JSONArray
 import org.json.JSONObject
-import vasiliev.aleksey.bullfinchserver.general.Constants.DATE
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.countHash
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.makeByteArray
 import vasiliev.aleksey.bullfinchserver.general.GlobalLogic.makeKeyBytesFromJSONArray
@@ -24,6 +23,7 @@ import vasiliev.aleksey.bullfinchserver.general.Constants.PUBLIC_KEY
 import vasiliev.aleksey.bullfinchserver.general.Constants.SALT_SIZE
 import vasiliev.aleksey.bullfinchserver.general.Constants.SECRET_SALT
 import vasiliev.aleksey.bullfinchserver.general.Constants.USER_NAME
+import vasiliev.aleksey.bullfinchserver.general.Constants.DATE
 
 class DataBase {
     fun instance() = Files.createDirectories(Paths.get(MAIN_DIR))
@@ -144,15 +144,17 @@ class DataBase {
 
     fun checkIfThereAreNewMessages(login: String): Long {
         val pathToDirectory = Paths.get("$MAIN_DIR/$login/$NEW/$MESSAGES")
-        return Files.list(pathToDirectory).count()
+        if (Files.exists(pathToDirectory)) Files.list(pathToDirectory).count()
+        return 0L
     }
 
     fun checkIfThereAreNewRequests(login: String): Long {
         val pathToDirectory = Paths.get("$MAIN_DIR/$login/$NEW/$FRIEND_REQUESTS")
-        return Files.list(pathToDirectory).count()
+        if (Files.exists(pathToDirectory)) return Files.list(pathToDirectory).count()
+        return 0L
     }
 
-    private fun createJSONMessage(from: String, date: ByteArray, content: ByteArray): String {
+    fun createJSONMessage(from: String, date: ByteArray, content: ByteArray): String {
         val jsonObject = JSONObject()
         jsonObject.put(FROM, from)
         val jsonArrayDate = JSONArray()

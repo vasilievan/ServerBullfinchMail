@@ -12,7 +12,6 @@ import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.PBEKeySpec
 import vasiliev.aleksey.bullfinchserver.general.Constants.DEFAULT_CHARSET
-import vasiliev.aleksey.bullfinchserver.general.Constants.EXTENDED_KEY_LENGTH
 import vasiliev.aleksey.bullfinchserver.general.Constants.MESSAGE_DIGEST_ALGORITM
 import vasiliev.aleksey.bullfinchserver.general.Constants.SECRET_KEY_FACTORY_ALGORITM
 import vasiliev.aleksey.bullfinchserver.general.ProtocolPhrases.CLOSE_CLIENT_SOCKET_PHRASE
@@ -31,7 +30,7 @@ object GlobalLogic {
     fun countHash(anything: ByteArray): ByteArray = messageDigest.digest(anything)
 
     fun makeKeyBytesFromJSONArray(jsonArray: JSONArray): ByteArray {
-        val byteArray = ByteArray(EXTENDED_KEY_LENGTH)
+        val byteArray = ByteArray(jsonArray.length())
         for ((counter, element) in jsonArray.withIndex()) {
             byteArray[counter] = element.toString().toByte()
         }
