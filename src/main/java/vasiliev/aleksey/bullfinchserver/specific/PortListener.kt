@@ -45,9 +45,11 @@ class PortListener(portNumber: Int, private val keyGen: KeyPairGenerator) {
                 while (true) {
                     clientSocket = serverSocket.accept()
                     if (clientSocket != null) {
-                        logger.info(CLIENT_CONNECTED_PHRASE)
-                        writer = clientSocket!!.getOutputStream()
-                        understandWhatTheyWantFromYou()
+                        thread {
+                            logger.info(CLIENT_CONNECTED_PHRASE)
+                            writer = clientSocket!!.getOutputStream()
+                            understandWhatTheyWantFromYou()
+                        }
                     }
                 }
             } catch (e: IOException) {
