@@ -144,7 +144,7 @@ class DataBase {
 
     fun checkIfThereAreNewMessages(login: String): Long {
         val pathToDirectory = Paths.get("$MAIN_DIR/$login/$NEW/$MESSAGES")
-        if (Files.exists(pathToDirectory)) Files.list(pathToDirectory).count()
+        if (Files.exists(pathToDirectory)) return Files.list(pathToDirectory).count()
         return 0L
     }
 
